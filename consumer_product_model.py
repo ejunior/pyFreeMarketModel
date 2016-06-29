@@ -33,8 +33,11 @@ class Producer:
 
     def produce(self):
         if self.supply > 0:
-            if not self.price < COST:
+            if self.price >= COST:
                 self.price *= PRICE_DECREMENT
+        else:
+            self.price *= PRICE_INCREMENT
+            self.generate_goods()
 
 
 class Consumer:
@@ -50,7 +53,7 @@ class Consumer:
             if cheapest_producer:
                 if cheapest_producer.price > MAX_ACCEPTABLE_PRICE:
                     self.demands *= 0.5
-                cheapest_supply = cheapest_producer.supply
+                cheapest_supply = Market.cheapest_producer().supply
 
                 if self.demands > cheapest_supply:
                     self.demands -= cheapest_supply
@@ -83,7 +86,7 @@ class Market:
     @staticmethod
     def average_price():
         # ($producers.inject(0.0) { |memo, producer| memo + producer.price}/ $producers.size).round(2)
-        return round(functools.reduce(lambda x, y: x+y.price, producers, 0), 2)
+        return round(functools.reduce(lambda x, y: x+y.price, producers, 0)/producers.__len__(), 2)
 
     @staticmethod
     def supply():
@@ -107,8 +110,7 @@ class Market:
         if prds:
             return prds.pop()
         else:
-            return False
-
+            return None
 
 
 demand_supply = []
@@ -137,11 +139,13 @@ for t in range(SIMULATION_DURATION):
 outputFile = open('price_demand.csv', 'w', newline='')
 outputWriter = csv.writer(outputFile)
 for r in price_demand:
+    print(r)
     outputWriter.writerow(r)
 outputFile.close()
 
 outputFile = open('demand_supply.csv', 'w', newline='')
 outputWriter = csv.writer(outputFile)
 for r in demand_supply:
+    print(r)
     outputWriter.writerow(r)
 outputFile.close()
