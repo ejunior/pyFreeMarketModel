@@ -44,13 +44,13 @@ class Consumer:
         self.demands = 0
 
     def buy(self):
-        while not self.demands <= 0 or Market.supply() <= 0:
-            cheapest_producer = Market.cheapest_producer
+        while self.demands > 0 and Market.supply() > 0:
+            cheapest_producer = Market.cheapest_producer()
 
-            if Market.cheapest_producer:
-                if Market.cheapest_producer().price > MAX_ACCEPTABLE_PRICE:
+            if cheapest_producer:
+                if cheapest_producer.price > MAX_ACCEPTABLE_PRICE:
                     self.demands *= 0.5
-                cheapest_supply = Market.cheapest_producer().supply
+                cheapest_supply = cheapest_producer.supply
 
                 if self.demands > cheapest_supply:
                     self.demands -= cheapest_supply
@@ -103,7 +103,13 @@ class Market:
         for p in producers:
             if p.supply > 0:
                 prds.append(p)
-        return sorted(prds, key=lambda f: f.price).pop()
+        prds.sort(key=lambda f: f.price, reverse=True)
+        if prds:
+            return prds.pop()
+        else:
+            return False
+
+
 
 demand_supply = []
 price_demand = []
@@ -123,7 +129,7 @@ for t in range(SIMULATION_DURATION):
 
     price_demand.append([t, Market.average_price(), Market.demand()])
 
-    while not Market.demand() == 0 or Market.supply() == 0:
+    while Market.demand() > 0 and Market.supply() > 0:
         # $consumers.each do |consumer|
         for consumer in consumers:
             consumer.buy()
