@@ -65,6 +65,7 @@ class Consumer:
 
 producers = []
 for i in range(NUM_OF_PRODUCERS):
+    
     producer = Producer()
     producer.price = COST + random.choice(range(MAX_STARTING_PROFIT))  # rand(MAX_STARTING_PROFIT)
     producer.supply = random.choice(range(MAX_STARTING_SUPPLY))  # rand(MAX_STARTING_SUPPLY)
