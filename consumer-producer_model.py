@@ -2,6 +2,8 @@ import functools
 import math
 import random
 import csv
+import numpy as np
+import matplotlib.pyplot as plt
 
 __author__ = 'ur5f'
 
@@ -115,6 +117,9 @@ class Market:
 
 
 demand_supply = []
+price =[]
+supply = []
+demand = []
 price_demand = []
 
 # SIMULATION_DURATION.times do |t|
@@ -125,17 +130,41 @@ for t in range(SIMULATION_DURATION):
         consumer.demands = generated_demand[t]
 
     demand_supply.append([t, Market.demand(), Market.supply()])
+    supply.append( Market.supply())
     # demand_supply << [t, Market.demand, Market.supply]
     # $producers.each do |producer|
     for producer in producers:
         producer.produce()
 
     price_demand.append([t, Market.average_price(), Market.demand()])
+    price.append(Market.average_price())
+    demand.append(Market.demand())
 
     while Market.demand() > 0 and Market.supply() > 0:
         # $consumers.each do |consumer|
         for consumer in consumers:
             consumer.buy()
+
+
+fig ,ax1 = plt.subplots()
+t = range(SIMULATION_DURATION)
+
+ax1.plot(t, price, 'b-' )
+ax1.set_xlabel('time (s)')
+# Make the y-axis label and tick labels match the line color.
+ax1.set_ylabel('price', color='b')
+for tl in ax1.get_yticklabels():
+    tl.set_color('b')
+
+ax2 = ax1.twinx()
+ax2.plot(t, demand, 'r-')
+ax2.set_ylabel('demamd', color='r')
+for tl in ax2.get_yticklabels():
+    tl.set_color('r')
+plt.show()
+
+
+
 
 outputFile = open('price_demand.csv', 'w', newline='')
 outputWriter = csv.writer(outputFile)
