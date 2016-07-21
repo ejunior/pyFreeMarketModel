@@ -1,11 +1,14 @@
+from functools import reduce
+import math
 import random
-import csv
+# import csv
+# import numpy as np
 import matplotlib.pyplot as plt
 
 __author__ = 'ur5f'
 
 
-SIMULATION_DURATION = 800
+SIMULATION_DURATION = 150
 NUM_OF_PRODUCERS = 10
 NUM_OF_CONSUMERS = 10
 MAX_STARTING_SUPPLY = 20
@@ -32,7 +35,7 @@ class Producer:
 
     def produce(self):
         if self.supply > 0:
-            if self.price > COST:
+            if self.price >= COST:
                 self.price *= PRICE_DECREMENT
         else:
             self.price *= PRICE_INCREMENT
@@ -69,46 +72,55 @@ for _z in range(NUM_OF_PRODUCERS):
     producer.supply = random.choice(range(MAX_STARTING_SUPPLY))  # rand(MAX_STARTING_SUPPLY)
     producers.append(producer)
 
-# NUM_OF_CONSUMERS.times do
-consumers = [Consumer() for c in range(NUM_OF_CONSUMERS)]
 
+consumers = []
+# NUM_OF_CONSUMERS.times do
+for _i in range(NUM_OF_CONSUMERS):
+    consumers.append(Consumer())
+
+generated_demand = []
 # SIMULATION_DURATION.times {|n| $generated_demand << ((Math.sin(n)+2)*20).round }
-#generated_demand = [round((math.sin(n)+2)*20) for n in range(SIMULATION_DURATION)]
+for n in range(SIMULATION_DURATION):
+    generated_demand.append(round((math.sin(n)+2)*20))
 
 # reading demand data
-generated_demand = []
-with open('foo.csv', newline='') as csvfile:
-    line = csv.reader(csvfile, delimiter=',')
-    for r in line:
-        generated_demand.append(round(int(r[1])/10))
-
-generated_demand += generated_demand
-generated_demand += generated_demand
-generated_demand += generated_demand
-print(generated_demand)
+# with open('foo.csv', newline='') as CSV_file:
+#    line = csv.reader(CSV_file, delimiter=',')
+#     for r in line:
+#         generated_demand.append(int(r[1]))
+#     print(generated_demand)
 
 
 class Market:
     @staticmethod
     def average_price():
         # ($producers.inject(0.0) { |memo, producer| memo + producer.price}/ $producers.size).round(2)
-        return round(sum(p.price for p in producers)/producers.__len__(), 2)
+        return round(reduce(lambda x, y: x+y.price, producers, 0)/producers.__len__(), 2)
 
     @staticmethod
     def supply():
         # $producers.inject(0) { |memo, producer| memo + producer.supply }
-        return sum(p.supply for p in producers)
+        return reduce(lambda acc, y: acc+y.supply, producers, 0)
 
     @staticmethod
     def demand():
         # $consumers.inject(0) { |memo, consumer| memo + consumer.demands }
-        return sum(c.demands for c in consumers)
+        return reduce(lambda x, y: x+y.demands, consumers, 0)
 
     @staticmethod
     def cheapest_producer():
         # producers = $producers.find_all {|f| f.supply > 0}
         # producers.min_by{|f| f.price}
-        return sorted([p for p in producers if p.supply > 0], key=lambda f: f.price, reverse=True).pop()
+        prds = []
+        for p in producers:
+            if p.supply > 0:
+                prds.append(p)
+        prds.sort(key=lambda f: f.price, reverse=True)
+        if prds:
+            return prds.pop()
+        else:
+            return None
+
 
 demand_supply = []
 price_demand = []
@@ -116,15 +128,14 @@ price_demand = []
 price = []
 supply = []
 demand = []
-newProducers = 0
 
 
 # SIMULATION_DURATION.times do |t|
 # for t in range(SIMULATION_DURATION):
 for t in range(SIMULATION_DURATION):
 
-    # progress = t/SIMULATION_DURATION
-    # print("\rProgress: [{0:50s}] {1:.1f}%".format('#' * int(progress * 50), progress*100), end="", flush=True)
+    progress = t/SIMULATION_DURATION
+    print("\rProgress: [{0:50s}] {1:.1f}%".format('#' * int(progress * 50), progress*100), end="", flush=True)
 
     # consumers.each do |consumer|
     for consumer in consumers:
@@ -134,24 +145,20 @@ for t in range(SIMULATION_DURATION):
     supply.append(Market.supply())
     # demand_supply << [t, Market.demand, Market.supply]
     # $producers.each do |producer|
-    [producer.produce() for producer in producers]
+    for producer in producers:
+        producer.produce()
 
     price.append(Market.average_price())
     demand.append(Market.demand())
     price_demand.append([t, Market.average_price(), Market.demand()])
 
-    if Market.average_price() > MAX_STARTING_PROFIT*2:
-        newProducers += 1
-        print("adding new producer %d " % newProducers)
-        producers.append(Producer())
-
     while Market.demand() > 0 and Market.supply() > 0:
         # $consumers.each do |consumer|
-        [consumer.buy() for consumer in consumers]
-
+        for consumer in consumers:
+            consumer.buy()
 
 # price demand
-fig, ax1 = plt.subplots(nrows=2, ncols=1)
+fig, ax1 = plt.subplots(nrows=1, ncols=2)
 t = range(SIMULATION_DURATION)
 
 ax1[0].plot(t, price, 'b-')
@@ -181,8 +188,9 @@ ax1[1].yaxis.grid(True)
 for tl in ax1[1].get_yticklabels():
     tl.set_color('b')
 
-ax3 = ax1[1].twinx()
+ax3 = ax1[1].twiny()
 ax3.plot(t, supply, 'r-')
+
 ax3.set_ylabel('supply', color='r')
 ax3.yaxis.grid(True)
 
@@ -190,18 +198,3 @@ for tl in ax3.get_yticklabels():
     tl.set_color('r')
 
 plt.show()
-
-#
-# outputFile = open('price_demand.csv', 'w', newline='')
-# outputWriter = csv.writer(outputFile)
-# for r in price_demand:
-#     print(r)
-#     outputWriter.writerow(r)
-# outputFile.close()
-#
-# outputFile = open('demand_supply.csv', 'w', newline='')
-# outputWriter = csv.writer(outputFile)
-# for r in demand_supply:
-#     print(r)
-#     outputWriter.writerow(r)
-# outputFile.close()
