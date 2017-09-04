@@ -1,7 +1,7 @@
 from functools import reduce
 import math
 import random
-# import csv
+import csv
 # import numpy as np
 import matplotlib.pyplot as plt
 
@@ -84,8 +84,8 @@ for n in range(SIMULATION_DURATION):
     generated_demand.append(round((math.sin(n)+2)*20))
 
 # reading demand data
-# with open('foo.csv', newline='') as CSV_file:
-#    line = csv.reader(CSV_file, delimiter=',')
+# with open('foo.csv', newline='') as csvfile:
+#    line = csv.reader(csvfile, delimiter=',')
 #     for r in line:
 #         generated_demand.append(int(r[1]))
 #     print(generated_demand)
@@ -94,18 +94,22 @@ for n in range(SIMULATION_DURATION):
 class Market:
     @staticmethod
     def average_price():
-        # ($producers.inject(0.0) { |memo, producer| memo + producer.price}/ $producers.size).round(2)
-        return round(reduce(lambda x, y: x+y.price, producers, 0)/producers.__len__(), 2)
+        # ($producers.inject(0.0) { |memo, producer| memo + producer.price}/ $producers.size).round(2)        
+        #return round(reduce(lambda acc, y: acc+y.price, producers, 0)/producers.__len__(), 2)
+        return round(sum([p.price for p in producers])/len(producers),2)
 
     @staticmethod
     def supply():
         # $producers.inject(0) { |memo, producer| memo + producer.supply }
-        return reduce(lambda acc, y: acc+y.supply, producers, 0)
+        #return reduce(lambda acc, y: acc+y.supply, producers, 0)
+        return(sum([p.supply for p in producers]))
 
     @staticmethod
     def demand():
         # $consumers.inject(0) { |memo, consumer| memo + consumer.demands }
-        return reduce(lambda x, y: x+y.demands, consumers, 0)
+        #return reduce(lambda x, y: x+y.demands, consumers, 0)
+        return(sum([c.demands for c in consumers]))
+
 
     @staticmethod
     def cheapest_producer():
@@ -188,9 +192,8 @@ ax1[1].yaxis.grid(True)
 for tl in ax1[1].get_yticklabels():
     tl.set_color('b')
 
-ax3 = ax1[1].twiny()
+ax3 = ax1[1].twinx()
 ax3.plot(t, supply, 'r-')
-
 ax3.set_ylabel('supply', color='r')
 ax3.yaxis.grid(True)
 
@@ -198,3 +201,18 @@ for tl in ax3.get_yticklabels():
     tl.set_color('r')
 
 plt.show()
+
+
+outputFile = open('price_demand.csv', 'w', newline='')
+outputWriter = csv.writer(outputFile)
+for r in price_demand:
+    print(r)
+    outputWriter.writerow(r)
+outputFile.close()
+
+outputFile = open('demand_supply.csv', 'w', newline='')
+outputWriter = csv.writer(outputFile)
+for r in demand_supply:
+    print(r)
+    outputWriter.writerow(r)
+outputFile.close()
