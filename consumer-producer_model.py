@@ -26,8 +26,8 @@ class Producer:
     price = 0
 
     def __init__(self):
-        self.supply = 0
-        self.price = 0
+        self.price = COST + random.choice(range(MAX_STARTING_PROFIT))  # rand(MAX_STARTING_PROFIT)
+        self.supply = random.choice(range(MAX_STARTING_SUPPLY))  # rand(MAX_STARTING_SUPPLY)
 
     def generate_goods(self):
         if self.price > COST:
@@ -45,7 +45,7 @@ class Producer:
 class Consumer:
     demands = 0
 
-    def initialize(self):
+    def __init__(self):
         self.demands = 0
 
     def buy(self):
@@ -67,10 +67,7 @@ class Consumer:
 
 producers = []
 for _z in range(NUM_OF_PRODUCERS):
-    producer = Producer()
-    producer.price = COST + random.choice(range(MAX_STARTING_PROFIT))  # rand(MAX_STARTING_PROFIT)
-    producer.supply = random.choice(range(MAX_STARTING_SUPPLY))  # rand(MAX_STARTING_SUPPLY)
-    producers.append(producer)
+    producers.append(Producer())
 
 
 consumers = []
@@ -94,7 +91,7 @@ for n in range(SIMULATION_DURATION):
 class Market:
     @staticmethod
     def average_price():
-        # ($producers.inject(0.0) { |memo, producer| memo + producer.price}/ $producers.size).round(2)        
+        # ($producers.inject(0.0) { |memo, producer| memo + producer.price}/ $producers.size).round(2)
         #return round(reduce(lambda acc, y: acc+y.price, producers, 0)/producers.__len__(), 2)
         return round(sum([p.price for p in producers])/len(producers),2)
 
@@ -115,15 +112,9 @@ class Market:
     def cheapest_producer():
         # producers = $producers.find_all {|f| f.supply > 0}
         # producers.min_by{|f| f.price}
-        prds = []
-        for p in producers:
-            if p.supply > 0:
-                prds.append(p)
+        prds = [p for p in producers if p.supply > 0]
         prds.sort(key=lambda f: f.price, reverse=True)
-        if prds:
-            return prds.pop()
-        else:
-            return None
+        return prds.pop() if prds else None
 
 
 demand_supply = []
