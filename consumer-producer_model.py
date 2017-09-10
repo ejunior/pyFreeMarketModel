@@ -69,7 +69,6 @@ producers = []
 for _z in range(NUM_OF_PRODUCERS):
     producers.append(Producer())
 
-
 consumers = []
 # NUM_OF_CONSUMERS.times do
 for _i in range(NUM_OF_CONSUMERS):
